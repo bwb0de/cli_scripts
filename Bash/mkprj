@@ -1,0 +1,20 @@
+#!/bin/sh
+
+#
+# Cria e inicializa novo projeto no GitHub
+#
+
+if [ $# -eq 0 ];
+then
+    printf "É necessário fornecer argumentos...\n";
+fi
+
+mkdir "$1"
+cd "$1"
+touch README.md
+git init
+git add README.md
+git commit -m "Registro inicial"
+git remote add origin "git@github.com:alexpchin/$1.git"
+git push -u origin master
+

@@ -1,0 +1,15 @@
+#!/bin/bash
+#
+#
+
+sudo su
+INIT_FOLDER=$PWD
+cd /home/danielc/Documentos/Devel/Scripts/Bash/
+sudo cp cmd_get /usr/bin/cmd_get
+sudo cp showip /usr/bin/showip
+sudo cp track_f_changes /usr/bin/track_f_changes
+sudo cp install_scripts /usr/bin/install_scripts
+cd /home/danielc/Documentos/Devel/Scripts/Python/
+sudo cp mkbk /usr/bin/mkbk
+cd $INIT_FOLDER
+exit

@@ -1,0 +1,43 @@
+#!/bin/bash
+#
+# Write and read simple info on files.
+#
+# Trata-se de um script simples para escrever e ler informações em arquivos dentro da pasta .teller na pasta home.
+# O objetivo é facilitar a comunicação entre scripts simples e persistentes em funcionamento como o rclone_sync e track_f_changes.
+#
+#
+
+#Verifica a existência das pastas de metadados
+if test -d ~/.teller
+then
+	command echo "" > /dev/null
+else
+	#Cria essa pasta caso não exista
+	command mkdir -p ~/.teller
+fi
+
+#Verifica e existência de parâmetros
+if test $# -eq 0 
+then
+	echo "É necessário fornecer argumentos para o programa... "
+	echo ""
+	echo " Uso: teller FNAME [-t|-c|-g] 'Texto'"
+	echo ""
+	echo " -t    Grava o texto escrito no arquivo FNAME."
+	echo " -c    Cria um contador com FNAME, se já existir, incrementa o valor registrado em 1."
+	echo " -g    Lê o conteúdo corrente de FNAME."
+	echo ""
+else
+	#Verifica se o argumento fornecido é diretório fornecido é um diretório absoluto ou relativo.
+	if test "$2" == "-t"
+	then
+		echo "$3" > ~/.teller/$1
+	elif test "$2" == "-c"
+	then
+		expr 0 + $(cat ~/.teller/$1) + 1 > ~/.teller/$1
+	elif test "$2" == "-g"
+	then
+		cat ~/.teller/$1
+	fi
+fi
+

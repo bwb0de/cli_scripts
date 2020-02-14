@@ -1,0 +1,67 @@
+#!/bin/bash
+#
+# Script para redimencionar multiplas imagens.
+# Autor: Daniel Ferraz
+#
+# Dependências:
+#    imagemagick
+#
+
+##########
+# Definindo variáveis
+####
+
+iJPG=`ls | grep .jpg | wc -l`
+iPNG=`ls | grep .png | wc -l`
+iBMP=`ls | grep .bmp | wc -l`
+anyI=`expr $iJPG + $iPNG + $iBMP`
+noI="there are no img-Files on this folder..."
+
+
+##########
+# Instruções do script
+####
+
+if [ $1 ] || [ $2 ] || [ $3 ] || [ $4 ] || [ $5 ];
+   then
+      case "$1" in
+         "-h" | "--help")
+         head $0 -n +24 | tail -n +2 | cut -c2-81 ; exit 0
+         ;;
+
+         "-r" | "--resize")
+         if [ $2 ] ;
+            then
+            if [ $anyI -eq 0 ]
+               then echo "$0: $noI" ; exit 3 ; fi
+               while [ $iJPG != 0 ] ; do
+                  for i in *.jpg ; do convert -resize $2 $i size$2-$i ; done
+                  iJPG=0 ; done
+               while [ $iPNG != 0 ] ; do
+                  for i in *.png ; do convert -resize $2 $i size$2-$i ; done
+                  iPNG=0 ; done
+               while [ $iBMP != 0 ] ; do
+                  for i in *.bmp ; do convert -resize $2 $i size$2-$i ; done
+                  iBMP=0 ; done
+               exit 0;
+            else
+               echo "$0: argument error, type '$0 -h' for help."
+               exit 2;
+            fi
+         ;;
+
+         "-t" | "--tumb")
+            if [ $anyI -eq 0 ]
+               then echo "$0: $noI" ; exit 3 ; fi
+            if [ $iJPG != 0 ] ; then
+               for i in *.jpg ; do convert -resize 160 $i $i.tb ; done ; fi
+            if [ $iPNG != 0 ] ; then
+               for i in *.png ; do convert -resize 160 $i $i.tb ; done ; fi
+            if [ $iBMP != 0 ] ; then
+               for i in *.bmp ; do convert -resize 160 $i $i.tb ; done ; fi
+         ;;
+
+      esac
+   else
+      echo "$0: no argument defined. Type '$0 -h' for help" ; exit 1
+   fi

@@ -1,0 +1,77 @@
+#!/bin/bash
+#
+#  Copyright 2017 Daniel Cruz <bwb0de@bwb0dePC>
+#  Version 0.1
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+#  MA 02110-1301, USA.
+#
+#
+#  Descrição:
+#  Check list: confronta duas listas e retorna os items em comum
+#
+#
+
+function checklist {
+	LISTA1=$(cat "$1")
+	LISTA2=$(cat "$2")
+	INITDI=$(pwd)
+
+	for LINE in $LISTA1;
+		do
+		CHECK=$(cat "$2" | grep "$LINE" | wc -l)
+		if test $CHECK -eq 1;
+			then
+			echo "$LINE" >> /tmp/nas_duas
+		else
+			echo "$LINE" >> /tmp/apenas_na_primeira
+		fi
+	done
+			
+	echo "Nas duas listas"
+	cat /tmp/nas_duas
+	rm /tmp/nas_duas
+	rm /tmp/apenas_na_primeira
+}
+
+
+if test $# -lt 4;
+	then
+	if test $1 -eq "-h";
+		then
+		echo "Forma de uso:"
+		echo 'check_list [LST1] [LST2] -d ","¹ -c 0²'
+		echo ""
+		echo "¹O delimitador pode ser especificado por outros caracteres..."
+		echo "²Indica a coluna da lista um que possuirá o valor a ser checado..."
+		echo ""
+	else
+		echo "Você deve fornecer as duas listas a serem comparadas... E o caractere delimitador de colunas..."
+	fi
+	exit 1
+fi
+
+if test -f $1;
+	then
+	if test -f $2;
+		then
+		checklist $1 $2
+	else
+		echo "$2 não é um arquivo de texto..."
+	fi
+else
+	echo "$1 não é um arquivo de texto..."
+fi
+

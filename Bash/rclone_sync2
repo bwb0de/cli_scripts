@@ -1,0 +1,205 @@
+#!/bin/bash
+#
+#
+
+#Aguardando o ambiente de trabalho ser iniciado...
+sleep 40
+
+#Verifica se há um contador na pasta do usuário para controle dos diferentes tipos de backup...
+if test -f ~/.rclone_count;
+then 
+	#Em existindo um contador, verifica o valor registrado nele...
+	if test $(cat ~/.rclone_count) -lt 30; 
+	then
+		#Se o valor for inferior a 30, realiza apenas a cópia trivial entre pastas locais e serviços WEB
+		expr 0 + $(cat ~/.rclone_count) + 1 > ~/.rclone_count
+		MEGABACK=0
+		GDRIVE2=0
+	else
+		#Se o valor for exatamente 30, ativa a varíavel para realização integral da cópia de segurança 1 para o serviço GDrive2...
+		if test $(cat ~/.rclone_count) -eq 30;
+		then
+			GDRIVE2=1
+		else
+			if test $(cat ~/.rclone_count) -eq 45;
+			then
+			#Se o valor for exatamente 45, ativa a varíavel para realização integral da cópia de segurança 2 para o serviço MEGA...
+				MEGABACK=1
+				#Neste ponto redefine o contador para 1 a fim de iniciar um novo ciclo...
+				echo '1' > ~/.rclone_count;
+			fi
+		fi
+	fi
+else
+	#Se não existir um contador, cria um e continua com o processo de cópia trivial...
+	echo '1' > ~/.rclone_count;
+fi
+
+#Uma notificação inicial será enviada informando o início da sincronização...
+kdialog --title 'rclone' --passivepopup 'Script de sincronização com a nuvem iniciado...' 7
+
+#Inicio do LOOP principal que verificará periodicamente alterações realizadas nas pastas cadastradas...
+for (( ; ; ))
+do
+	#BLOCO DE CÓPIAS TRIVIÁIS
+	#Nas cópias triviais a notificação do usuário só acontecerá nos casos de erro.
+	
+	#Arquivos RPG
+	echo "Verificando 'RPG'..."
+	rclone check "Daniel Dropbox":/ArquivosRPG/ "/home/danielc/Documentos/RPG/" 2> ~/.rclone_sync_check 
+	if test $(cat ~/.rclone_sync_check | grep "0 differences found" | wc -l) -ne 1
+	then
+		kdialog --title 'rclone' --passivepopup 'Atualizando "RPG"!' 7
+		rclone copy -u "Daniel Dropbox":/ArquivosRPG/ "/home/danielc/Documentos/RPG/"
+		ER1=$(echo $?)
+		rclone copy -u "/home/danielc/Documentos/RPG/" "Daniel Dropbox":/ArquivosRPG/
+		ER2=$(echo $?)
+	
+		if test $(expr 0 + $ER1 + 0 + $ER2 + 0) -gt 0
+		then
+			kdialog --title 'rclone' --passivepopup 'Algum erro ocorreu na sincronização da pasta "RPG"!' 7
+		fi
+	fi
+	
+	#Meus textos
+	echo "Verificando 'Meus textos'..."
+	rclone check "Daniel Dropbox":"/Meus textos/" "/home/danielc/Documentos/Meus textos/" 2> ~/.rclone_sync_check 
+	if test $(cat ~/.rclone_sync_check | grep "0 differences found" | wc -l) -ne 1
+	then
+		kdialog --title 'rclone' --passivepopup 'Atualizando "Meus textos"!' 7
+		rclone copy -u "Daniel Dropbox":"/Meus textos/" "/home/danielc/Documentos/Meus textos/"
+		ER1=$(echo $?)
+		rclone copy -u "/home/danielc/Documentos/Meus textos/" "Daniel Dropbox":"/Meus textos/"
+		ER2=$(echo $?)
+		if test $(expr 0 + $ER1 + 0 + $ER2 + 0) -gt 0
+		then
+			kdialog --title 'rclone' --passivepopup 'Algum erro ocorreu na sincronização da pasta "Meus textos"!' 7
+		fi
+	fi
+	
+	#Devel folder: Python
+	echo "Verificando 'Python'..."
+	rclone check "Daniel Dropbox":/Devel/Python/ "/home/danielc/Documentos/Devel/Python" 2> ~/.rclone_sync_check 
+	if test $(cat ~/.rclone_sync_check | grep "0 differences found" | wc -l) -ne 1
+	then
+		kdialog --title 'rclone' --passivepopup 'Atualizando "Python"!' 7
+		rclone copy -u "Daniel Dropbox":/Devel/Python/ "/home/danielc/Documentos/Devel/Python"
+		ER1=$(echo $?)
+		rclone copy -u "/home/danielc/Documentos/Devel/Python" "Daniel Dropbox":/Devel/Python/
+		ER2=$(echo $?)
+		if test $(expr 0 + $ER1 + 0 + $ER2 + 0) -gt 0
+		then
+			kdialog --title 'rclone' --passivepopup 'Algum erro ocorreu na sincronização da pasta "Python"!' 7
+		fi
+	fi
+
+	#Devel folder: Scripts
+	echo "Verificando 'Scripts'..."
+	rclone check "Daniel Dropbox":/Devel/Scripts/ "/home/danielc/Documentos/Devel/Scripts" 2> ~/.rclone_sync_check 
+	if test $(cat ~/.rclone_sync_check | grep "0 differences found" | wc -l) -ne 1
+	then
+		kdialog --title 'rclone' --passivepopup 'Atualizando "Scripts"!' 7
+		rclone copy -u "Daniel Dropbox":/Devel/Scripts/ "/home/danielc/Documentos/Devel/Scripts"
+		ER1=$(echo $?)
+		rclone copy -u "/home/danielc/Documentos/Devel/Scripts" "Daniel Dropbox":/Devel/Scripts/
+		ER2=$(echo $?)
+		if test $(expr 0 + $ER1 + 0 + $ER2 + 0) -gt 0
+		then
+			kdialog --title 'rclone' --passivepopup 'Algum erro ocorreu na sincronização da pasta "Scripts"!' 7
+		fi
+	fi
+		
+
+	#Devel folder: Scripts Bash
+	echo "Verificando 'Bash'..."
+	rclone check "Daniel Dropbox":/Devel/Bash/ "/home/danielc/Documentos/Devel/Bash" 2> ~/.rclone_sync_check 
+	if test $(cat ~/.rclone_sync_check | grep "0 differences found" | wc -l) -ne 1
+	then
+		kdialog --title 'rclone' --passivepopup 'Atualizando "Bash"!' 7
+		rclone copy -u "Daniel Dropbox":/Devel/Bash/ "/home/danielc/Documentos/Devel/Bash"
+		ER1=$(echo $?)
+		rclone copy -u "/home/danielc/Documentos/Devel/Bash" "Daniel Dropbox":/Devel/Bash/
+		ER2=$(echo $?)
+		if test $(expr 0 + $ER1 + 0 + $ER2 + 0) -gt 0
+		then
+			kdialog --title 'rclone' --passivepopup 'Algum erro ocorreu na sincronização das pastas do grupo "Devel"!' 7
+		fi
+	fi
+	
+	
+	#Dados SPS e pesquisa
+	echo "Verificando 'SPS'..."
+	rclone check "Daniel Dropbox":"/SPS/" "/home/danielc/Documentos/SPS/" 2> ~/.rclone_sync_check 
+	if test $(cat ~/.rclone_sync_check | grep "0 differences found" | wc -l) -ne 1
+	then
+		kdialog --title 'rclone' --passivepopup 'Atualizando "SPS"!' 7
+		rclone copy -u "Daniel Dropbox":"/SPS/" "/home/danielc/Documentos/SPS/"
+		ER1=$(echo $?)
+		rclone copy -u "/home/danielc/Documentos/SPS/" "Daniel Dropbox":"/SPS/"
+		ER2=$(echo $?)
+		if test $(expr 0 + $ER1 + 0 + $ER2 + 0) -gt 0
+		then
+			kdialog --title 'rclone' --passivepopup 'Algum erro ocorreu na sincronização da pasta "SPS"!' 7
+		fi	
+	fi
+	
+	
+	#Arquivos mestrado
+	echo "Verificando 'Mestrado'..."
+	rclone check "/home/danielc/Documentos/Serviço Social/Arquivos Mestrado" "Daniel Dropbox":"/Mestrado/" 2> ~/.rclone_sync_check 
+	if test $(cat ~/.rclone_sync_check | grep "0 differences found" | wc -l) -ne 1
+	then
+		kdialog --title 'rclone' --passivepopup 'Atualizando "Mestrado"!' 7
+		rclone copy -u "/home/danielc/Documentos/Serviço Social/Arquivos Mestrado" "Daniel Dropbox":"/Mestrado/"
+		ER1=$(echo $?)
+		rclone copy -u "Daniel Dropbox":"/Mestrado/" "/home/danielc/Documentos/Serviço Social/Arquivos Mestrado"	
+		ER2=$(echo $?)
+		if test $(expr 0 + $ER1 + 0 + $ER2 + 0) -gt 0
+		then
+			kdialog --title 'rclone' --passivepopup 'Algum erro ocorreu na sincronização da pasta "Mestrado"!' 7
+		fi
+	fi
+	
+	#BLOCO DE CÓPIAS DE SEGURANÇA
+	if test $GDRIVE2 -eq 1;
+	then
+		echo "Realizando backup de 'Devel' para GDrive2..."
+		kdialog --title 'rclone' --passivepopup 'Realizando a cópia de segurança da pasta de Devel para GDrive2 (danielftdc@gmail.com)...' 7
+		ER1=$(echo $?)
+		rclone sync -L "/home/danielc/Documentos/Devel/" "Daniel GDrive2":/Devel/
+		if test $(expr 0 + $ER1 + 0) -gt 0;
+		then
+			kdialog --title 'rclone' --passivepopup 'Não foi possível realizar a cópia de segurança para GDrive2!' 7
+			echo '30' > ~/.rclone_count;
+		else
+			kdialog --title 'rclone' --passivepopup 'Cópia de segurança para GDrive2 (danielftdc@gmail.com) concluída!' 7
+			GDRIVE2=0		
+		fi
+	fi
+	
+	if test $MEGABACK -eq 1
+	then
+		echo "Realizando backup de 'Devel', 'SPS', 'Meus textos' e 'Mestrado' para MEGA..."
+		kdialog --title 'rclone' --passivepopup 'Realizando a cópia de segurança das pastas "Devel", "SPS", "Meus textos" e "Mestrado" para MEGA...' 7
+		rclone sync -L "/home/danielc/Documentos/Devel/" "Daniel MEGA":/Devel/ 
+		ER1=$(echo $?)
+		rclone sync -L "/home/danielc/Documentos/SPS/" "Daniel MEGA":"/SPS/" 
+		ER2=$(echo $?)
+		rclone sync -L "/home/danielc/Documentos/Meus textos/" "Daniel MEGA":"/Meus textos/" 
+		ER3=$(echo $?)
+		rclone sync -L "/home/danielc/Documentos/Serviço Social/Arquivos Mestrado" "Daniel MEGA":"/Mestrado/" 
+		ER4=$(echo $?)
+		
+		#Verifica se houve algum erro
+		if test $(expr 0 + $ER1 + 0 + $ER2 + 0 + $ER3 + 0 + $ER4 + 0) -gt 0
+		then
+			kdialog --title 'rclone' --passivepopup 'Não foi possível realizar a cópia de segurança para MEGA!' 7
+			echo '45' > ~/.rclone_count;
+		else
+			kdialog --title 'rclone' --passivepopup 'Cópia de segurança para MEGA concluída!' 7
+			MEGABACK=0
+		fi
+	fi	
+	
+	sleep 20
+done

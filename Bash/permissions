@@ -1,0 +1,82 @@
+#!/bin/bash
+#
+# Define permissões recursivamente de uma pasta alvo de acordo com opções predefinidas.
+# Este script foi pensado para ser utilizado sobre diretórios dos usuários, não uzar sobre as
+# diretórios do sistema de arquivos.
+# Estabele, também, o padrão para novas pastas/arquivos criados.
+#
+
+
+if test $# -lt 1;
+	then
+	echo "É necessário definir o diretório alvo da ação..."
+	exit
+fi
+
+if test $# -lt 2;
+	then
+	echo "É necessário definir o nível de aceso desejado para o dirtetório alvo..."
+	echo "As poções são:"
+	echo "  -privado 		para permitir acesso apenas ao dono"
+	echo "  -permissivo		permitir acesso read aos usuários e terceiros"
+	echo "  -compartilhado	permitir acesso read/write aos usuários e read à terceiros"
+	exit
+fi
+
+function set_permissions {
+	clear
+	echo "Alterando recursivamente permissões do diretório $1 para: "
+	if test "$2" == '-privado';
+		then
+		echo "  -privado"
+		echo "      Arquivos:"
+		echo "        usuário : rw-"
+		echo "        grupo   : ---"
+		echo "        outros  : ---"
+	elif test "$2" == '-permissivo';
+		then
+		echo "  -permissivo"
+		echo "      Arquivos:"
+		echo "        usuário : rw-"
+		echo "        grupo   : r--"
+		echo "        outros  : ---"
+	elif test "$2" == '-compartilhado';
+		then
+		echo "  -compartilhado"
+		echo "      Arquivos:"
+		echo "        usuário : rw-"
+		echo "        grupo   : rw-"
+		echo "        outros  : r--"
+	fi
+
+	chmod -R u+rw "$1"
+	chmod -R u-x "$1"
+
+
+	if test "$2" == '-privado';
+		then
+		chmod -R go-rwx "$1"
+		setfacl -R -b "$1"
+		#setfacl -R -d -m g::--- "$1"
+		#setfacl -R -d -m o::--- "$1"
+	elif test "$2" == '-permissivo';
+		then
+		chmod -R g=r "$1"
+		chmod -R o-rwx "$1"
+		setfacl -R -b "$1"
+		#setfacl -R -d -m g::r-- "$1"
+		#setfacl -R -d -m o::--- "$1"
+	elif test "$2" == '-compartilhado';
+		then
+		chmod -R g=rw "$1"
+		chmod -R o=r "$1"
+		setfacl -R -b "$1"
+		#setfacl -R -d -m g::rw- "$1"
+		#setfacl -R -d -m o::r-- "$1"
+	fi
+
+	find "$1" -type d | chmod g+s "$1" | chmod ugo+x "$1";
+
+	}
+
+set_permissions "$1" "$2"

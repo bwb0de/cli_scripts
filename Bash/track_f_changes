@@ -1,0 +1,126 @@
+#!/bin/bash
+#
+# Script criado para realizar a verificação dos arquivos alterados em uma determinada pasta.
+#
+# Este script foi pensado para ser utilizado em conjunto com o script rclone_sync a fim de possibilitar
+# otimização no tempo de verificação e envio dos arquivos alterados com menos tempo de acesso e gravação
+# em disco.
+#
+
+#Verifica e existência de parâmetros
+if test $# -eq 0 
+then
+	#Se não houver diretório alvo como parametro, considerar o diretório corrente
+	FLSTNAME=$(echo "$PWD" | sed 's/\//+/g' | sed 's/ /=/g')
+else
+	#Verifica se o argumento fornecido é diretório fornecido é um diretório absoluto ou relativo.
+	if test -d "$PWD/$1"
+	then
+		echo "Caminho relativo!"
+		FLSTNAME=$(echo "$PWD/$1" | sed 's/\//+/g' | sed 's/ /=/g')
+		FOLDER_OP=1
+	else
+		if test -d "$1"
+		then 
+			echo "Caminho absoluto!"
+			FLSTNAME=$(echo "$1" | sed 's/\//+/g' | sed 's/ /=/g')
+			FOLDER_OP=2
+		else
+			echo "Argumento não reconhecido!"
+		fi
+	fi
+fi
+
+
+#Verifica a existência das pastas de metadados
+if test -d ~/.track_f_changes
+then
+	command echo "" > /dev/null
+else
+	#Cria essas pastas caso não existam
+	command mkdir -p ~/.track_f_changes/f_list
+	command mkdir -p ~/.track_f_changes/l_hash
+fi
+
+
+#Verifica se a pasta alvo já foi rastreada
+if test -f ~/.track_f_changes/f_list/$FLSTNAME
+then
+	#Se já estiver sido rastreada, cria a lista corrente na pasta temporária.
+	if test FOLDER_OP -eq 1
+	then
+		command ls -1 "$PWD/$1" > /tmp/current_list
+	elif test FOLDER_OP -eq 2
+		command ls -1 "$1" > /tmp/current_list
+	else
+		command ls -1 "$PWD" > /tmp/current_list
+	fi
+	
+	#Analisa em seguida os arquivos listados na lista corrente.
+	command rm /tmp/tmpz 2> /dev/null; touch /tmp/tmpz
+	while read F;
+	do
+		if test -f "$F";
+		then
+			command echo "$(sha1sum "$F")" >> /tmp/tmpz
+		else
+			command echo "[DIR] $F" >> /tmp/tmpz
+		fi;
+	done < /tmp/current_list
+	
+	#Se diferenças forem detectados, mostra o resultado
+	if test $(diff ~/.track_f_changes/l_hash/$FLSTNAME /tmp/tmpz | wc -l) -ge 1;
+	then
+		PLACE=$(echo "$FLSTNAME" | sed 's/+/\//g' | sed 's/=/ /g')
+		echo "Modificações em  '$PLACE' desde a última lista de controle..."
+		diff ~/.track_f_changes/l_hash/$FLSTNAME /tmp/tmpz | grep "<"  | awk -F' ' '{ print $3 }' > /tmp/excl1
+		diff ~/.track_f_changes/l_hash/$FLSTNAME /tmp/tmpz | grep ">" | awk -F' ' '{ print $3 }' > /tmp/excl2
+		diff ~/.track_f_changes/l_hash/$FLSTNAME /tmp/tmpz | grep "<" | grep "[DIR]" | awk -F' ' '{ print $0 }' | cut -c3- > /tmp/excl3
+		diff ~/.track_f_changes/l_hash/$FLSTNAME /tmp/tmpz | grep ">" | grep "[DIR]" | awk -F' ' '{ print $0 }' | cut -c3- > /tmp/excl4
+		
+		rm /tmp/excluded 2> /dev/null; touch /tmp/excluded
+		rm /tmp/modified 2> /dev/null; touch /tmp/modified
+		
+		#Fix para evitar que arquivos modificados/editados apareçam na lista de excluídos
+		while read ALTER;
+		do
+			if test $(cat < /tmp/excl2 | grep "$ALTER" | wc -l) -ge 1;
+			then
+				echo "$ALTER" >> /tmp/modified
+			else
+				echo "$ALTER" >> /tmp/excluded
+			fi
+		done < /tmp/excl1
+				
+		#Exibe a lista dos arquivos excluídos...
+		echo "*Itens excluídos..."
+		cat < /tmp/excluded >> /tmp/excl3
+		cat /tmp/excl3
+		echo ""
+		
+		#Exibe alista dos arquivos alterados/editados...
+		echo "*Itens adicionados/modificados..."		
+		cat < /tmp/modified >> /tmp/excl4
+		cat /tmp/excl4
+		echo ""
+	fi
+else
+	#Caso não exista lista primária, não há o que comparar... Crie a lista primária para o diretório alvo...
+	ls -1 "$PWD/$1" > /tmp/current_list
+	
+	#Cria lista com informação dos hases sha1sum...
+	rm /tmp/tmpz 2> /dev/null; touch /tmp/tmpz
+	while read F;
+	do
+		if test -f "$F";
+		then
+			echo "$(sha1sum "$F")" >> /tmp/tmpz
+		else
+			echo "[DIR] $F" >> /tmp/tmpz
+		fi;
+	done < /tmp/current_list
+	mv /tmp/current_list ~/.track_f_changes/f_list/$FLSTNAME
+	mv /tmp/tmpz ~/.track_f_changes/l_hash/$FLSTNAME
+fi
+
+

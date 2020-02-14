@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+from random import sample
+from string import punctuation, digits, ascii_letters
+
+services = ['ProtonMail (bwb0de)', 'PaintRest (bwb0de)', 'UnB Mail (danielc)', 'Box (danielc)', 'Dropbox (bwb0de)', 'Evernote (bwb0de)', 'SIGRA', 'SEI', 'MEGA (dftdcruz)', 'Life360 (bwb0de)', 'Waze (bwb0de)', 'Spotify (bwb0de)']
+printable = punctuation + digits + ascii_letters
+
+print('Home Wifi')
+print('392436380')
+print('')
+
+for s in services:
+	print(s)
+	if s == 'MEGA (dftdcruz)':
+		print('5xyi1wc8fHoJo7EUGFb2Xg')
+	if s == 'Waze (bwb0de)':
+		print("".join(sample(digits,3)) + ''.join(sample(ascii_letters,9)))
+	else:
+		print(''.join(sample(printable,13)))
+	print('')
+
+

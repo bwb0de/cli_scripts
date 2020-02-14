@@ -1,0 +1,69 @@
+#!/bin/bash
+#
+#
+
+TARGET=/home/danielc/Teste
+TARGETB=/home/danielc/Teste2
+
+
+if test -f ~/.synctest_old;
+then
+	echo 'Ok'
+else
+	ls -1R $TARGET > ~/.synctest_old #find /home/danielc/Teste
+	ls -1R $TARGETB > ~/.synctest_old2 #rclone ls "Daniel Dropbox":/Devel/Python/ | cut -c11-
+fi
+
+
+for (( ; ; ))
+do
+	COPY_PASS=1
+	
+	#Verificar arquivos deletados
+	ls -1R $TARGET > ~/.synctest_current
+	if test $(diff ~/.synctest_old ~/.synctest_current | grep "<" | wc -l) -ge 1;
+	then
+		for FILE in $(diff ~/.synctest_old ~/.synctest_current | grep "<" | cut -c3- | sed 's/ /§+§/g' )
+		do
+			FILENAME=$(echo $FILE | sed 's/§+§/ /g')
+			rclone deletefile "$TARGETB/$FILENAME"
+		done
+		ls -1R $TARGET > ~/.synctest_old
+		ls -1R $TARGET > ~/.synctest_current
+		COPY_PASS=0
+	elif test $(diff ~/.synctest_old ~/.synctest_current | grep ">" | wc -l) -ge 1;
+	then
+		if test $COPY_PASS -eq 1;
+		then
+			rclone copy -u "$TARGET" "$TARGETB" 
+			ls -1R $TARGET > ~/.synctest_old
+			ls -1R $TARGET > ~/.synctest_current
+		fi
+	fi
+	
+	
+	ls -1R $TARGETB > ~/.synctest_current2
+	if test $(diff ~/.synctest_old2 ~/.synctest_current2 | grep "<" | wc -l) -ge 1;
+	then
+		for FILE in $(diff ~/.synctest_old2 ~/.synctest_current2 | grep "<" | cut -c3- | sed 's/ /§+§/g' )
+		do
+			FILENAME=$(echo $FILE | sed 's/§+§/ /g')
+			rclone deletefile "$TARGET/$FILENAME"
+		done
+		ls -1R $TARGETB > ~/.synctest_old2
+		ls -1R $TARGETB > ~/.synctest_current2
+		COPY_PASS=0
+	elif test $(diff ~/.synctest_old2 ~/.synctest_current2 | grep ">" | wc -l) -ge 1;
+	then
+		if test $COPY_PASS -eq 1;
+		then
+			rclone copy -u "$TARGETB" "$TARGET"
+			ls -1R $TARGETB > ~/.synctest_old2
+			ls -1R $TARGETB > ~/.synctest_current2			
+		fi
+	fi
+	
+	echo "Fim do LOOP... Esperando..."
+	sleep 10
+	
+done

@@ -1,0 +1,7 @@
+#!/bin/bash
+#
+# Get public IP num...
+#
+
+source showip
+

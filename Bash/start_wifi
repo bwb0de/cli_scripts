@@ -1,0 +1,10 @@
+#!/bin/bash
+iw dev
+ip link set wlp0s29f7u1 up
+iw wlp0s29f7u1 scan | grep -i SSID
+wpa_passphrase Net-Virtua-3638 392436380 > /etc/wpa_supplicant/wpa_supplicant.conf
+wpa_supplicant -B -i wlp0s29f7u1 -c /etc/wpa_supplicant/wpa_supplicant.conf
+iw wlp0s29f7u1 link
+dhclient wlp0s29f7u1
+ping 8.8.8.8
+

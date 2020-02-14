@@ -1,0 +1,41 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Aug 22 10:54:25 2015
+@author: bwb0de
+
+Separa arquivos conforme a extensão...
+
+"""
+
+from subprocess import Popen
+from sys import argv, exit
+from os import walk, path, remove, mkdir
+
+MAX_INSTANCES=10
+PATH = argv[1]
+PATH2COUTER = '/home/bwb0de/.scrips/mp3TOogg.counter'
+INSTANCES = []
+FILELIST=[]
+FILELIST2RM=[]
+
+def sep_by_ext(FN):
+	#cmd = ['ffmpeg', '-i', FN, FN.replace(".mp3", ".ogg"), "-n", "-loglevel", "quiet"]
+	#sp = Popen(cmd)
+	#return sp
+	return FN
+
+DEST_PATH = path.join(PATH, "ARRUMAR")
+try: mkdir(DEST_PATH)
+except: pass
+
+for root, dirs, files in walk(PATH):
+	for f in files:
+		DEST_PATH_THIS_FILE = path.join(DEST_PATH, f.split(".")[-1])
+		try: mkdir(DEST_PATH_THIS_FILE)
+		except: pass
+		#Teste
+		try:
+			cmd = ['touch', path.join(DEST_PATH_THIS_FILE, f)]
+			Popen(cmd)
+		except: pass

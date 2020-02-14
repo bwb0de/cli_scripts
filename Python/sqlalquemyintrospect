@@ -1,0 +1,33 @@
+from sqlalchemy import create_engine
+from sqlalchemy import MetaData
+from sqlalchemy import Table, Column
+from sqlalchemy import Integer, Date, DateTime, Numeric, Boolean, Unicode, UnicodeText, SmallInteger
+from sqlalchemy import select, insert, update
+from sqlalchemy import ForeignKey, ForeignKeyConstraint
+from sqlalchemy import inspect #Forma de analizar DB existente...
+
+engine = create_engine("mysql://root:@localhost/",encoding='utf-8', echo=True)
+dbn = 'spsfup3'
+engine.execute('''CREATE DATABASE `%s` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;''' % dbn)
+engine = create_engine("mysql://root:@localhost/spsfup3",encoding='utf-8', echo=True)
+
+metadata = MetaData()
+
+inspector = inspect(engine)
+
+for tab in inspector.get_table_names():
+	tab_reflected = Table(tab, metadata, autoload=True, autoload_with=engine)
+
+f = open('spsfupdb_sqlalchemy', 'w')
+
+for tab in metadata.sorted_tables:
+	f.write(unicode([tab])+os.linesep*2)
+
+f.close()
+
+
+f = request.form
+for key in f.keys():
+    for value in f.getlist(key):
+        print key,":",value
+

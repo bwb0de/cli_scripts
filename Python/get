@@ -1,0 +1,3 @@
+apt-get install $@
+youtube-dl https://www.youtube.com/watch?v=RPT9_VWEsyY
+wget $@

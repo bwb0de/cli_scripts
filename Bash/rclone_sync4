@@ -1,0 +1,120 @@
+#!/bin/bash
+#
+# Este é um script de sincronização e backup com diversos serviços da internet e meu HD externo.
+# Utiliza o rclone e o mkbk, o primeiro um projeto público e o segundo um script pessoal para realizar a tarefa.
+# Fas uso, também de outros scripts escritos, tais como o teller e o track_f_changes, para facilitar a execução dessas tarefas.
+#
+# ATENÇÃO AO INICIAR O SCRIPT !!!
+#
+# O script assume que a pasta remota de sincronização diária já está com as versões mais atualizadas dos arquivos,
+# dessa forma, ao rodá-lo tenha em mente que ele fará, inicialmente, uma sincronização no sentido da nuvem para a pasta local. Isso apagará
+# os arquivos da pasta local que não existam na pasta remota.
+#
+# Após essa sincronização o script acompanha as alterações nas pastas locais fazendo sincronização no sentido da pasta local para nuvem
+# quando são detectadas alterações nas pastas. Dessa forma, ao acessar outro computador, o processo se repete, as últimas alterações da máquina
+# na nuvem são sincronizadas com o computador 2 e em seguida as alterações do computador 2 são enviadas ao servidor.
+#
+# NO MOMENTO NÃO HÁ SUPORTE PARA ALTERAÇÕES SIMULTÂNEAS, OU SEJA, PODERÁ HAVER PERDA DE DADOS CASO SE TRABALHE COM DUAS OU MAIS 
+# MÁQUINAS SIMULTANEAMENTE. USE POR SUA CONTA E RISCO.
+#
+
+
+#Esta função faz uma sincronização inicial dos arquivos alterados na nuvem para uma equalização inicial do conteúdo.
+function sync_cloud_to_local {
+	rclone sync -u "Daniel Dropbox":"/Meus textos/" "/home/danielc/Documentos/Meus textos/"
+	rclone sync -u "Daniel Dropbox":"/RPG/" "/home/danielc/Documentos/RPG/"
+	#rclone check "Daniel Dropbox":/Devel/Scripts/ "/home/danielc/Documentos/Devel/Scripts"
+	#rclone check "Daniel Dropbox":/Devel/Python/ "/home/danielc/Documentos/Devel/Python"
+	#rclone check "Daniel Dropbox":"/SPS/" "/home/danielc/Documentos/SPS/" 
+	#rclone check "/home/danielc/Documentos/Serviço Social/Arquivos Mestrado" "Daniel Dropbox":"/Mestrado/"
+}
+
+#Esta função verifica se houve alterações nas pastas locais configuradas e, em caso positivo, procede com a sincronização da pasta local com a nuvem.
+function sync_local_to_cloud {
+	
+}
+
+
+#Esta função realiza o backup periódico para os serviços do MEGA e do GDrive quando for o momento apropriado de fazê-lo.
+function backup_to_cloud {
+	
+}
+
+
+#Esta função solicita a insersão do HD externo para realizar o backup integral incremental da pasta home. 
+function backup_to_external_hd {
+	#mkbk
+}
+
+
+
+TARGET=/home/danielc/Teste
+SERVICE="Daniel GDrive2"
+TARGETB=/Teste
+
+
+for (( ; ; ))
+do
+	COPY_PASS=1
+	
+	#Verificar arquivos deletados
+	find $TARGET > ~/.synctest_current
+	if test $(diff ~/.synctest_old ~/.synctest_current | grep "<" | wc -l) -ge 1;
+	then
+		
+		#Verifica na comparação entre a lista antiga e a corrente o que foi excluído
+		diff ~/.synctest_old ~/.synctest_current | grep "<" | cut -c3- > ~/.rclone_sync/tmpl
+		while read LINE;
+		do 
+			if test -f "$LINE";
+			then
+				echo "$LINE";
+			fi;
+		done < ~/.rclone_sync/tmpl
+		
+		while read FILENAME;
+		do
+			rclone deletefile "$SERVICE":"$TARGETB/$FILENAME"
+		done
+		ls -1R $TARGET > ~/.synctest_old
+		ls -1R $TARGET > ~/.synctest_current
+		COPY_PASS=0
+	elif test $(diff ~/.synctest_old ~/.synctest_current | grep ">" | wc -l) -ge 1;
+	then
+		if test $COPY_PASS -eq 1;
+		then
+			rclone copy -u "$TARGET" "$SERVICE":"$TARGETB" 
+			ls -1R $TARGET > ~/.synctest_old
+			ls -1R $TARGET > ~/.synctest_current
+		fi
+	fi
+	
+	
+	#ls -1R $TARGETB > ~/.synctest_current2
+	rclone ls "$SERVICE":"$TARGETB" | cut -c11- > ~/.synctest_current2
+	if test $(diff ~/.synctest_old2 ~/.synctest_current2 | grep "<" | wc -l) -ge 1;
+	then
+		for FILE in $(diff ~/.synctest_old2 ~/.synctest_current2 | grep "<" | cut -c3- | sed 's/ /§+§/g' )
+		do
+			FILENAME=$(echo $FILE | sed 's/§+§/ /g')
+			rm "$TARGET/$FILENAME"
+		done
+		cp ~/.synctest_current2 ~/.synctest_old2
+		#ls -1R $TARGETB > ~/.synctest_old2
+		#ls -1R $TARGETB > ~/.synctest_current2
+		COPY_PASS=0
+	elif test $(diff ~/.synctest_old2 ~/.synctest_current2 | grep ">" | wc -l) -ge 1;
+	then
+		if test $COPY_PASS -eq 1;
+		then
+			rclone copy -u "$SERVICE":"$TARGETB" "$TARGET"
+			cp ~/.synctest_current2 ~/.synctest_old2
+			#ls -1R $TARGETB > ~/.synctest_old2
+			#ls -1R $TARGETB > ~/.synctest_current2			
+		fi
+	fi
+	
+	echo "Fim do LOOP... Esperando..."
+	sleep 10
+	
+done

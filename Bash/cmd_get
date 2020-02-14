@@ -1,0 +1,11 @@
+#!/bin/bash
+#
+#
+
+cat < ~/.bash_history > /tmp/cmd_get_data
+while read p;
+do
+	LINE=$(echo $p | awk -F" " '{ print $0 }')
+	CMD_NAME=$(echo $p | awk -F" " '{ print $1 }')
+	echo "$LINE" >> "~/Documentos/Devel/Terminal Linux/$CMD_NAME"
+done < /tmp/cmd_get_data

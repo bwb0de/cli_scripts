@@ -1,0 +1,12 @@
+#!/bin/bash
+
+IMGFOLDER=~/
+t="$(ping -c 1 www.google.de | sed -ne '/.*time=/{;s///;s/\..*//;p;}')"
+wget https://www.bing.com/HPImageArchive.aspx?format=xml\&idx=0\&n=1\&mkt=de-DE -O /tmp/download.xml
+imgpath=$(sed -n -e 's/.*<url>\(.*\)<\/url>.*/\1/p' /tmp/download.xml)
+imgsrc='https://www.bing.com'${imgpath//1366x768/1920x1080}
+file=$(basename "$imgsrc")
+filename="${file%.*}"
+extension="${file##*.}"
+wget $imgsrc -O $IMGFOLDER/$(date -d "today" +"%Y_%m_%d")_$filename.$extension
+fileurl=Image=file://$IMGFOLDER/$(date -d "today" +"%Y_%m_%d")_$filename.$extension

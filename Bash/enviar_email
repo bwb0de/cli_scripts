@@ -1,0 +1,201 @@
+#!/bin/bash
+#
+# Script para enviar vários anexos via 'mail'
+# Autor: Daniel Ferraz, e-mail: dftdcruz@gmail.com
+#
+# Dependências:
+#     ** msmtp
+#        que pode ser instalado, no Debian, pelo comando:
+#          /# aptitude install msmtp
+#
+#     ** mailx, mail, Mail
+#        que pode ser instalado, no Debian, pelo comando:
+#          /# aptitude install mail
+#
+#     ** txt2tags (ARRUMAR!!!)
+#        que pode ser instalado, no Debian, pelo comando:
+#          /# aptitude install txt2tags
+#
+# Licensa: LGLP
+#
+
+
+##########
+# Analisando argumentos fornecidos via de comando
+####
+
+
+##########
+# Definindo variáveis
+####
+
+assunto=$1
+init_folder=`pwd`
+att_tmp_folder="/tmp/mail/attachment_files"
+jdd_mail_list="./lista"
+output_folder="/tmp/mail/out"
+sent_mail_folder="/tmp/mail/sent"
+txt="/tmp/mail/mail_mensagem"
+num=1
+size_current=0
+size_total=0
+end="rm -f -R /tmp/mail/"
+
+
+##########
+# Definindo funções
+####
+
+mkhead(){
+
+## Início da criação do arquivo do e-mail que será enviado.
+
+echo "From: dftdcruz@gmail.com" > mail
+echo 'MIME-Version: 1.0' >> mail
+echo "To: dftdcruz@gmail.com" >> mail
+echo "Subject: [jogodd] $assunto" >> mail
+echo 'Content-Type: multipart/mixed;' >> mail
+echo ' boundary="------------020101020400020907080606"' >> mail
+echo '' >> mail
+echo 'This is a multi-part message in MIME format.' >> mail
+echo '--------------020101020400020907080606' >> mail
+echo 'Content-Type: text/html; charset=ISO-8859-1' >> mail
+echo 'Content-Transfer-Encoding: 7bit' >> mail
+echo '' >> mail
+cat < $txt >> mail
+
+}
+
+att_size(){
+
+i=`wc -m $files.att | wc -c`
+y=`ls $files.att | wc -c`
+z=`expr $y + 1`
+o=`expr $i - $z`
+wc -c $files.att | cut -c0-$o
+
+}
+
+att_get_extension(){
+
+filename_size=`ls $files | wc -c`
+filename_size=`expr $filename_size - 5`
+file_mimetype=`ls $files | cut -c0-$filename_size | awk -F. '{ print $1 }'`
+
+}
+
+
+##########
+# Instruções de criação da mensagem
+####
+
+mkdir -p $att_tmp_folder
+mkdir -p $output_folder
+mkdir -p $sent_mail_folder
+mkdir $att_tmp_folder/$num
+check_for_jpg=`ls *.jpg | wc -l`
+
+if [ "$check_for_jpg" -ne "0" ]
+   then
+      for files in *.jpg
+         do
+         ## Aqui decodificamos os arquivos dos anexos
+         uuencode -m $files $files > $files.att_tmp
+
+         ## Aqui removemos o cabeçalho e a marca de fim do arquivo característicos do uuencode
+         a=`cat < $files.att_tmp | wc -l` ; cat < $files.att_tmp | head -n `expr $a - 1` | tail -n +2 > $files.att
+
+         ## Aqui removemos os arquivos de saída do uuencode
+         rm -f $files.att_tmp
+
+         ## Cauculo do tamanho, em bytes, do arquivo corrente e soma com os anteriores
+          # Quando o tamanho limite da mensagem é extrapolado, uma nova mensagem deve ser criada
+         size_current=`att_size`
+         size_total=`expr $size_current + $size_total`
+         echo "$0: tamanho do arquivo $files é: $size_current a soma com os anteriores é: $size_total"
+
+         ## Verifica-se a necessidade de criar uma outra mensagem caso o tamanho de 9890000 seja atingido.
+         if [ $size_total -gt "9000000" ]
+            then
+               echo "tamanho máximo atingido"
+               num=`expr $num + 1`
+               size_total=0
+               mkdir $att_tmp_folder/$num
+            fi
+
+         ## Arquivos de anexo criados são movidos para a pasta temporaria a fim de comporem as mensagems
+         mv $files.att $att_tmp_folder/$num/$files.att
+      done
+   fi
+
+mcedit $txt
+
+if "$check_for_jpg" -ne "0"
+   then
+      while [ $num -ne "0" ]
+         do
+            cd $att_tmp_folder/$num
+            mkhead
+            for files in *.att
+               do
+                  ## Aqui busca-se o nome real do arquivo, sem o sufixo '.att'.
+                  files_realname=`ls $files | sed 's/.att//g'`
+
+                  ## Nessa etapa os arquivos que serão anexados são adicionados dentro da mensagem.
+                   # INCOMPLETO - PRECISA CRIAR VERIFICAÇÃO DO TIPO DE ARQUIVO EM ANEXO: JPG, MP3...
+                   # sthg >> mail
+                  echo '--------------020101020400020907080606' >> mail
+
+                  ## Verifica o tipo de anexo para adicionar o indicativo 'Content-Type' apropriado.
+                  att_get_extension
+                  if [ $file_mimetype = 'jpg' ]
+                     then
+                       echo "Content-Type: image/jpeg;" >> mail
+                     fi
+
+                  ## Completa a adição do anexo à mensagem
+                  echo " name=$files_realname" >> mail
+                  echo 'Content-Transfer-Encoding: base64' >> mail
+                  echo 'Content-Disposition: inline;' >> mail
+                  echo " filename=$files_realname" >> mail
+                  echo '' >> mail
+                  cat < $files >> mail
+
+                  #mv $files add-$files
+               done
+
+            ## Adiciona a linha que finaliza o arquivo de mensagem corrente.
+            echo '--------------020101020400020907080606--' >> mail
+
+            ## Move arquivo 'mail' gerado para a pasta de saída marcando-o com a data atual.
+            date=`date +%Y-%m-%d_%Hh%Mm%Ss`
+            mv mail $output_folder/sm_mail$date-msgNUM$num
+
+            ## Diminue '$num' em 1, sendo positiva o looping é repetido
+            num=`expr $num - 1`
+            cd ..
+         done
+   else
+      mkhead
+      echo '--------------020101020400020907080606--' >> mail
+      date=`date +%Y-%m-%d_%Hh%Mm%Ss`
+      mv mail $output_folder/sm_mail$date-msgNUM$num
+      cd ..
+   fi
+
+cd $output_folder
+cp $jdd_mail_list .
+split_list.py
+
+for files in sm_mail*
+do
+   for add_list in mails_add*
+   do
+     mail -a "`cat < $files | head -n +6 | tail -n +1`" jogodd@gmail.com `cat < $add_list` -s "$assunto" < $files&
+     sleep 15s
+     rm -f $add_list
+   done
+done
+
+echo "$0: as mensagens estão sendo enviadas..."
+$end

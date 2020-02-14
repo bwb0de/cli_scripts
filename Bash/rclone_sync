@@ -1,0 +1,3 @@
+#!/bin/sh
+
+rclone sync -L /home/danielc/Documents/Devel/ "Daniel GDrive2":/Devel/
