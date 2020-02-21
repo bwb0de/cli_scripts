@@ -1,0 +1,17 @@
+# /etc/fstab: filesystem table.
+#
+# filesystem  mountpoint  type  options  dump  pass
+/dev/hda1  /  ext3  defaults  0  1
+/dev/hda5  none  swap  sw  0  0
+proc  /proc  proc  defaults  0  0
+/dev/fd0 /mnt/floppy vfat users,rw,noauto 0 0
+/dev/cdrom  /mnt/cdrom  iso9660  defaults,ro,user,noexec,noauto  0  0
+
+# partições encontradas pelo instalador:
+/dev/hda3 /users/Lucia reiserfs defaults 0 1
+/dev/hda8 /users/Dani ext3 defaults 0 1
+/dev/hda7 /users/Mari reiserfs defaults 0 1
+/dev/hda6 /users/Dani/Media ext3 defaults 0 1
+sys /sys sysfs noauto 0 0
+/dev/pts /dev/pts devpts mode=0622 0 0
+usbfs /proc/bus/usb usbfs defaults 0 0

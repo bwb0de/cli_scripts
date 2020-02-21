@@ -1,0 +1,16 @@
+#!/bin/bash
+
+echo "Realizando a cópia do aplicativo a partir da pasta de desenvolvimento..."
+sudo rsync -u -r /home/bwb0de/Nuvem/Dropbox/Devel/rpg_dice2/ /srv/rpg_dice/appdata/
+#sudo mv /srv/rpg_dice/appdata/core/static /srv/rpg_dice/appdata/static
+sudo mv -f /srv/rpg_dice/appdata/start_test_server.py /srv/rpg_dice/appdata/flaskapp.py
+echo "Ajustando permissões..."
+sudo chown -R uwsgi:nginx /srv/rpg_dice/
+echo "Reiniciando o servidor NGINX..."
+sudo systemctl restart nginx uwsgi
+#echo "Liberando acesso externo ao servidor NGINX..."
+#sudo /sbin/iptables -I INPUT -p tcp -m tcp --dport 80 -j ACCEPT
+
+#sudo firewall-cmd --add-service=http --permanent
+#sudo firewall-cmd --reload
+

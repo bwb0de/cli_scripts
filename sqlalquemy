@@ -1,0 +1,166 @@
+from sqlalchemy import create_engine
+engine = create_engine("sqlite://") #Cria na memória
+engine = create_engine("sqlite:///dbname.db")
+engine = create_engine("sqlite:////[absolut_path]/dbname.db")
+engine = create_engine("postgresql://user:pwd@localhost/dbn")
+engine = create_engine("postgresql[+psycopg2]://scott:tiger@localhost/test")
+                                 #Driver DBAPI
+
+engine = create_engine("mysql://user:pwd@hostname/dbn",encoding='utf-8', echo=True)
+
+engine.name             #Exime o nome do banco de dados 'mysql', 'postgresql'...
+engine.execute(QUERY)   #Executa uma query automaticamente e fecha a conexão... AUTOCOMMIT
+								#A query é passada sem alterações (comunicação direta com o BD)
+
+
+con = engine.connect()
+
+trans = con.begin()
+con.execute(QUERY)
+con.execute(QUERY)
+con.execute(QUERY)
+trans.commit()
+
+trans = con.begin()
+con.execute(QUERY)
+con.execute(QUERY)
+con.execute(QUERY)
+trans.commit()
+
+con.close()
+
+
+engine.execute('select col1, col2, ..., colN from TAB where col1 =:var', var)
+
+
+from sqlalchemy import MetaData
+from sqlalchemy import Table, Column
+from sqlalchemy import Integer, SmallInteger, String, DateTime, Date, Numeric, Boolean, Unicode, UnicodeText, Float #Numeric for DECIMAL
+from sqlalchemy import select, insert, update
+from sqlalchemy import ForeignKey, ForeignKeyConstraint
+
+metadata = MetaData()
+utable = Table('profissionaisutable', metadata,
+	Column('id', Integer, primary_key=True),
+	Column('nome', String(100), nullable=False|True),
+	Column('fullname', String, ForeignKey('outratabela.id'))
+
+utable.name                 #Retorna o nome da tabela 'utable', no banco de dados...
+utable.c.keys()             #Retorna lista com os nomes das colunas...
+metadata.create_all(engine) #Cria no banco de dados as tabelas definidas em 'metadata'
+metadata.drop_all(engine)           #Exclui as tabelas, no banco de dados...
+metadata.remove(utable)     #Remove uma tabela específica do metadata... Chamar a variável que representa o objeto tabela, não aceita string do nome da tabela...
+metadata.sorted_tables      #Mostra lista de tabelas com suas características
+
+col = utable.c.fullname
+col.type
+col.name
+col.table
+
+
+### Reflexion carrega a partir do banco de dados a estrutura de metadados definida em um banco de dados já existente.
+
+e.g.
+metadata2 = MetaData()
+user_reflected = Table('user', metadata2, autoload=True, autoload_with=engine)
+
+t02_reflected = Table('T02', metadata2, autoload=True, autoload_with=engine)
+
+FULCODE EXEMPLE
+
+from sqlalchemy import create_engine
+from sqlalchemy import MetaData
+from sqlalchemy import Table, Column
+from sqlalchemy import Integer, String, DateTime, Numeric, Boolean, Unicode, UnicodeText, Float())
+from sqlalchemy import select, where, insert, update, order_by
+from sqlalchemy import ForeignKey, ForeignKeyConstraint
+
+engine = create_engine("mysql://root:@localhost/",encoding='utf-8', echo=True)
+
+metadata2 = MetaData()
+t02_reflected = Table('T02', metadata2, autoload=True, autoload_with=engine)
+
+
+cadast = metadata2.sorted_tables[0]
+cadast.c.keys()
+
+['uid', 'timestamp', 'identificador', 'nome', 'sexo', 'curso', 'nvcurso', 'campi', 'turno', 'dn', 'email', 'telefones', 'cpf', 'localidade', 'regiao', 'cidade', 'end', 'semestre']
+
+#Inserção multipla
+engine.execute(cadast.insert().values(DICIONÁRIO)) #as chaves devem corresponder às colunas...
+
+#Seleção parcial
+r = engine.execute(select([cadast.c.nome]))
+r = engine.execute(select([cadast.c.nome, cadast.c.identificador]))
+
+#Seleção total
+r = engine.execute(select(cadast.c))
+
+users.insert().values(name="some name")
+
+users.update().where(users.c.id==5).values(name="some name")
+
+
+
+
+
+from sqlalchemy import inspect #Forma de analizar DB existente...
+
+inspector = inspect(engine)
+
+inspector.get_table_names()
+inspector.get_columns('TABNAME')
+inspector.get_foreign_key_list('TABNAME')
+
+
+from sqlalchemy.dialects import mysql #Os tipos específicos podem ser encontrados aqui, dar preferencia, contudo à tipificação por meio dos tipos definidos no core...
+
+>>> users = Table('users', metadata,
+...     Column('id', Integer, primary_key=True),
+...     Column('name', String),
+...     Column('fullname', String),
+... )
+
+>>> addresses = Table('addresses', metadata,
+...   Column('id', Integer, primary_key=True),
+...   Column('user_id', None, ForeignKey('users.id')), #Foreing exemplo
+...   Column('email_address', String, nullable=False)
+...  )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

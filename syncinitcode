@@ -1,0 +1,12 @@
+def geta(l):
+	r = []
+	for file in l:
+		fileinfo = os.popen2("""ls -l '%s'""" % file)[1]
+		fileinfo = fileinfo.read().replace('  ',' ').split(' ')
+		fileinfo = [os.getcwd() + os.sep + file, fileinfo[0], fileinfo[4], fileinfo[5]+'|'+fileinfo[6]+'|'+fileinfo[7]]
+		r.append(fileinfo)
+	return r
+
+def view(l):
+	for item in l:
+		print item

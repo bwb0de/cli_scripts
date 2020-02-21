@@ -1,0 +1,103 @@
+Estrutura do banco de dados dbedu.
+
+###
+ T0000000 -----------------> Informações gerais sobre alunos e professores.
+  prf(prfCOD¹, NOME, IDGDF, NICKNAME, MATERIA, TURMAS, HASH)
+  alu(aluCOD², NOME, TURMA, NUMERO, ENDERECO, FONE, MOBILE, EMAIL, ORKUT, TWITTER, BLOG, IM, RESPON, WEBPW, OBS)
+
+¹T0000001 |---| T0001000 --> Intervalo de IDs dos professores, servidores...
+  cnt(cntCOD , TITULO , obaCOD , obpCOD , obcCOD , DETALHES)
+  oba(obaCOD , OBJETIVO)
+  obp(obpCOD , OBJETIVO)
+  obc(obcCOD , OBJETIVO)
+  atv(atvCOD , TIPO , TITULO , DETALHES)
+  ato(atoCOD , DETALHES)
+  rlt(rltCOD , DIA , cntCOD , atvCOD , RELATORIO)
+  obsp(obspCOD , OBS)
+
+²T0001001 |---| T9999999 --> Intervalo IDs dos alunos...
+  frq(DIA , DECIMAL_FROM_BINARIO , TIPO_AULA , atvCOD , MATERIA , BIMESTRE , OBS_COMP )
+  atv(atvCOD , DIA , atoCOD , NOTA , MATERIA , BIMESTRE )
+  obs(obspCOD )
+  oco(ocoCOD , DIA , TIPO , MEDIDA , QUANTIDADE_DIAS , DETALHES )
+
+COMBOBOX UPDATE
+
+		count = 0
+			for i in dbprof[mat][username][6][bimestre].keys():
+				count = count + 1
+			
+			while count != 0:
+				self.combobox12.remove_text(1)
+				self.combobox29.remove_text(1)
+				self.comboboxentry1.remove_text(1)
+				count = count - 1
+					
+			count = 0
+			comboindex = []
+			combolist = []
+			for i in dbprof[mat][username][6][bimestre]:
+				count = count + 1
+				comboindex.append(str(i))
+			
+			for i in comboindex:
+				combolist.append(i)
+			
+			combolist.sort()		
+			for i in combolist:
+				self.combobox12.append_text(i)
+				self.combobox29.append_text(i)
+				self.comboboxentry1.append_text(i)
+
+
+
+
+CONTEUDOS
+
+try:
+			n = ctu.index(';')
+			l = []
+			l.append(ctu[:n])
+			l.append(ctu[n+2:])
+			if dbprof[mat][username][5].has_key(str(l[0])):
+				dbprof[mat][username][5][str(l[0])][str(l[1])] = ['','','','',[]]
+			else:
+				dbprof[mat][username][5][str(l[0])] = {str(l[1]): ['','','','',[]]}
+		
+		except:
+			l = []
+			l.append('ind')
+			l.append(ctu)
+			if dbprof[mat][username][5].has_key('ind'):
+				dbprof[mat][username][5]['ind'][ctu] = ['','','','',[]]
+			else:
+				dbprof[mat][username][5]['ind'] = {ctu: ['','','','',[]]}
+		
+		count = 0
+		for i in dbprof[mat][username][5].keys():
+			for ii in dbprof[mat][username][5][i]:
+				count = count + 1
+
+		while count != 0:
+			self.combobox11.remove_text(1)
+			self.comboboxentry2.remove_text(1)
+			count = count - 1
+				
+		combolist = []
+		for i in dbprof[mat][username][5].keys():
+			if i == 'ind':
+				for ii in dbprof[mat][username][5][i]:
+					combolist.append(str(ii))
+			else:
+				for ii in dbprof[mat][username][5][i]:
+					combolist.append(str(i) + '; ' + str(ii))
+		
+		combolist.sort()		
+		for i in combolist:
+			self.combobox11.append_text(i)
+			self.comboboxentry2.append_text(i)
+			
+		targets = get_tur_UIDlist(tma)
+		for i in targets:
+			s= db[i]['nfo'][0] + ' --- ' + str(bin2int(str(db[i]['dat'][mat][bimestre][1][nfotag]).replace('[','').replace(', ','')[0:8])) + ' --- ' + str(db[i]['dat'][mat][bimestre][1][nfotag]).replace('[','').replace(', ','')[0:8]
+			print s

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+echo "Pausando a execução do scrip por 2 minutos para aguardar a sincronização via Dropbox..."
+sleep 120
+
+rsync -a -b --suffix=.`date +%Y-%m-%d_%Hh%Mm%Ss`.backup /home/bwb0de/Dropbox/spsfup-dev /home/bwb0de/DevelBackup
+rsync -a -b --suffix=.`date +%Y-%m-%d_%Hh%Mm%Ss`.backup /home/bwb0de/Documentos /home/bwb0de/Dropbox

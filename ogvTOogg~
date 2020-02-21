@@ -1,0 +1,56 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Aug 22 10:54:25 2015
+@author: bwb0de
+
+Converte arquivos OGV em OGG...
+
+"""
+
+from subprocess import Popen
+from sys import argv, exit
+from os import walk, path
+
+MAX_INSTANCES=50
+PATH = argv[1]
+PATH2COUTER = '/home/bwb0de/.scrips/mp3TOogg.counter'
+INSTANCES = []
+FILELIST=[]
+FILELIST2RM=[]
+
+def convertMp3ToOgg(FN):
+	cmd = ['ffmpeg', '-i', FN, '-acodec', 'copy', '-vn', FN.replace(".ogg", ".ogg.ogg"), "-n", "-loglevel", "quiet"]
+	sp = Popen(cmd)
+	return sp
+
+
+for root, dirs, files in walk(PATH):
+	for f in files:
+		if f.find(".ogg") != -1:
+			FILELIST.append(path.join(root, f))
+
+print "%s arquivos OGV encontrados." % len(FILELIST)
+
+for FDONE in FILELIST2RM:
+	FILELIST2RM.remove(FDONE)
+	try:
+		FILELIST.remove(FDONE.replace(".ogg", ".mp3"))
+	except: pass
+
+FILELIST.sort()
+FILELIST.reverse()
+
+while True:
+	if len(FILELIST) == 0:
+		break
+	else:
+		if len(INSTANCES) < MAX_INSTANCES:
+			FN = FILELIST.pop()
+			#FILELIST2RM.append(FN)
+			print u"Convertendo: %s" % FN.decode("utf8")
+			INSTANCES.append(convertMp3ToOgg(FN))
+		else:
+			for sp in INSTANCES:
+				if sp.poll() != None:
+					INSTANCES.remove(sp)

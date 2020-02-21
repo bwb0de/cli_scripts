@@ -1,0 +1,49 @@
+'''if time.strptime(destfiled[2],'%d-%m-%Y') == time.strptime(srcfiled[2],'%d-%m-%Y'):
+			print "Arquivos editados no mesmo dia..."
+			#Em caso da data de edição dos arquivos local e servidor ser a mesma...
+			if destfiled[3] > srcfiled[3]:
+				#Verifica-se a hora de edição do arquivo do servidor é mais recente...
+				shutil.copy(destino+os.sep+fname,full_filesrc)
+				#Copia do servidor para o PC
+				
+			elif destfiled[3] < srcfiled[3]:
+				#Verifica-se a hora de edição do arquivo de destino é menos recente...
+				shutil.copy(full_filesrc,destino+os.sep+fname)
+				#Copia do PC para o servidor
+				
+			<-elif time.strptime(destfiled[2],'%d-%m-%Y') > time.strptime(srcfiled[2],'%d-%m-%Y'):'''
+			
+			
+		'''if destfiled[1] < srcfiled[1]:
+				#Verifica se tamanho do arquivo local é maior...
+				tag = str(str(time.localtime()[0])+'-'+str(time.localtime()[1]).zfill(2)+'-'+str(time.localtime()[2]).zfill(2))
+				allpath = full_filesrc.spli(os.sep)
+				indsrc = len(allpath)-1
+				backupn = fname+tag+'~'
+				newpath = allpath[0:indsrc-1]
+				newpath.append(backupn)
+				destination = os.sep.join(newpath)
+				shutil.copy(full_filesrc,destination)
+				#Em sendo, cria arquivo de backup do local com tag de data...
+			shutil.copy(destino+os.sep+fname,full_filesrc)'''
+			
+			'''if destfiled[1] > srcfiled[1]:
+				#Verifica se tamanho do arquivo do servidor é maior...
+				tag = str(str(time.localtime()[0])+'-'+str(time.localtime()[1]).zfill(2)+'-'+str(time.localtime()[2]).zfill(2))
+				backupn = fname+tag+'~'
+				destination = destino+os.sep+backupn
+				shutil.copy(destino+os.sep+fname,destination)
+				#Em sendo, cria arquivo de backup do servidor com tag de data...'''
+				
+def finditem(ite,l):
+	r = []
+	for i in l:
+		jjj = i.find(ite)
+		if jjj > 0:
+			r.append(h[h.index(i)])
+	return r
+	
+'''
+						for dd in destlist:
+							send2source(dd,i,dd)
+							cursor.execute("UPDATE syncFdst SET MD5 = '%s' WHERE NOME = '%s';" % (fmd5,i))'''

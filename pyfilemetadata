@@ -1,0 +1,4 @@
+filemetadata = subprocess.Popen(['ls', '%s' % nome_arq, '-l'], shell=False, stdout=subprocess.PIPE).communicate()[0].replace(os.linesep,'').split(' ')[4:7]
+
+#Saída é
+Tamanho, Data, Hora

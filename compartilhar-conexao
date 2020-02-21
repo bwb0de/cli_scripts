@@ -1,0 +1,149 @@
+#! /bin/bash
+# Compartilha a conexão com a Web no Kurumin
+# Por Carlos E. Morimoto
+
+# Esta variável detecta se já existem regras de firewall ativas.
+# ela é usada no final do script para decidir se é mostrada a pergunta 
+# sobre o firewall ou não.
+regras=`iptables -L | grep tcp` 
+
+
+export XDIALOG_HIGH_DIALOG_COMPAT=1
+DIALOG=Xdialog
+DIA=Xdialog
+rm -f /tmp/placa
+
+BT="Compartilhar Conexão"
+T1="Compartilhar Conexão"
+M1="Compartilhar-conexao : Este script permite compartilhar a conexão com a Internet com os micros da rede local.
+Para usá-lo, seu micro deve ter duas placas de rede, ou uma placa de rede e um modem e deve estar conectado à Internet, com a rede local já configurada.\n\n
+Ao clicar no 'Ok', vou abrir duas janelas, uma mostrando a sua configuração de rede atual e outra perguntando qual das interfaces de rede deve ser compartilhada.\n
+Para ativar o compartilhamento, você deve indicar a interface ligada à Internet, o que fará com que ela seja compartilhada com os micros da rede local.\n
+Se você se conecta via ADSL PPPoE ou via modem, a placa da Internet será a ppp0. Se você se conecta via ADSL, usando um modem roteador, será a eth0 ou eth1. Se você se conecta via wireless, será a wlan0, ath0 ou mesmo eth0, dependendo da placa usada. A placa da rede local por sua vez, será sempre a eth0 ou eth1, dependendo da sua configuração"
+$DIA --backtitle "$BT" --title "$T1" --msgbox "$M1" 26 75
+
+
+rm -f /tmp/ifconfig.txt
+ifconfig >> /tmp/ifconfig.txt
+Xdialog --no-cancel --logbox /tmp/ifconfig.txt 35 85 &
+
+$DIA --title "Compartilhar Conexão" \
+--backtitle "Indique a Interface" \
+--ok-label "Ok" --cancel-label "Cancelar" \
+--inputbox "Qual é a interface de rede com a conexão com a Internet, que será compartilhada com os micros da rede local?\n" 15 60 'eth0' > /dev/null 2> /tmp/placa
+retval=$?
+placa=`cat /tmp/placa`
+
+ if [ $retval = 1 ];
+ then
+   exit 0
+ fi
+
+echo $placa
+rm -f /tmp/placa
+rm -f /tmp/ifconfig.txt
+
+
+# Limpa a tabela de roteamento antes de começar. Isto permite que o script funcione mesmo
+# que o protozoário tenha clicado antes num dos ícones que compartilha uma das outras 
+# interfaces de rede.
+iptables -F -t nat
+
+# Compartilhar a conexão no Linux é muito simples, bastam três comandos. Em seguida é
+# criado o script que os executa durante o boot.
+
+modprobe iptable_nat
+iptables -A FORWARD -p tcp --tcp-flags SYN,RST SYN -m tcpmss --mss 1400:1536 -j TCPMSS --clamp-mss-to-pmtu
+iptables -t nat -A POSTROUTING -o $placa -j MASQUERADE
+echo 1 > /proc/sys/net/ipv4/ip_forward
+
+rm -f /etc/rc5.d/S98compartilhar-conexao
+rm -f /etc/init.d/compartilhar-conexao
+rm -f /etc/init.d/compartilhar-eth0
+rm -f /etc/init.d/compartilhar-ppp0
+
+echo '#!/bin/sh' >> /etc/init.d/compartilhar-conexao
+echo '# Compartilha a conexão' >> /etc/init.d/compartilhar-conexao
+echo 'compartilhar_start(){' >> /etc/init.d/compartilhar-conexao
+echo 'modprobe iptable_nat' >> /etc/init.d/compartilhar-conexao
+echo 'iptables -A FORWARD -p tcp --tcp-flags SYN,RST SYN -m tcpmss --mss 1400:1536 -j TCPMSS --clamp-mss-to-pmtu' >> /etc/init.d/compartilhar-conexao
+echo "iptables -t nat -A POSTROUTING -o $placa -j MASQUERADE" >> /etc/init.d/compartilhar-conexao
+echo 'echo 1 > /proc/sys/net/ipv4/ip_forward' >> /etc/init.d/compartilhar-conexao
+echo 'echo "O compartilhamento da conexão está sendo iniciado"' >> /etc/init.d/compartilhar-conexao
+echo 'sleep 1' >> /etc/init.d/compartilhar-conexao
+echo 'echo "Tudo ok."' >> /etc/init.d/compartilhar-conexao
+echo '}' >> /etc/init.d/compartilhar-conexao
+echo ' ' >> /etc/init.d/compartilhar-conexao
+echo 'compartilhar_stop(){' >> /etc/init.d/compartilhar-conexao
+echo 'iptables -t nat -F' >> /etc/init.d/compartilhar-conexao
+echo '}' >> /etc/init.d/compartilhar-conexao
+echo ' ' >> /etc/init.d/compartilhar-conexao
+echo 'case "$1" in' >> /etc/init.d/compartilhar-conexao
+echo ' "start")' >> /etc/init.d/compartilhar-conexao
+echo 'compartilhar_start' >> /etc/init.d/compartilhar-conexao
+echo '        ;;' >> /etc/init.d/compartilhar-conexao
+echo ' "stop")' >> /etc/init.d/compartilhar-conexao
+echo '        compartilhar_stop' >> /etc/init.d/compartilhar-conexao
+echo 'echo "O compartilhamento da conexão está sendo desativado"' >> /etc/init.d/compartilhar-conexao
+echo 'sleep 2' >> /etc/init.d/compartilhar-conexao
+echo 'echo "ok."' >> /etc/init.d/compartilhar-conexao
+echo '        ;;' >> /etc/init.d/compartilhar-conexao
+echo '  "restart")' >> /etc/init.d/compartilhar-conexao
+echo 'echo "O compartilhamento da conexão está sendo desativado"' >> /etc/init.d/compartilhar-conexao
+echo 'sleep 1' >> /etc/init.d/compartilhar-conexao
+echo 'echo "ok."' >> /etc/init.d/compartilhar-conexao
+echo '        compartilhar_stop; compartilhar_start' >> /etc/init.d/compartilhar-conexao
+echo '        ;;' >> /etc/init.d/compartilhar-conexao
+echo '      *)' >> /etc/init.d/compartilhar-conexao
+echo '        iptables -t nat -L' >> /etc/init.d/compartilhar-conexao
+echo 'esac' >> /etc/init.d/compartilhar-conexao
+
+
+
+chmod +x /etc/init.d/compartilhar-conexao
+cd /etc/rcS.d/
+ln -sf ../init.d/compartilhar-conexao S60compartilhar-conexao
+
+
+sleep 2
+
+BT="Compartilhar Conexão"
+T1="Compartilhar Conexão"
+M1="Compartilhar-conexao : Se os clientes da rede já estiverem configurados para acessar a web através do endereço IP usado pelo Kurumin você 
+já deve ser capaz de acessar a web automaticamente nos demais PCs da rede, mesmo rodando o Kurumin a partir do CD. 
+Ao contrário de um certo sistema operacional, não é preciso reiniciar o micro, nem mesmo a conexão ao ativar o 
+compartilhamento :-).\n
+Você poderá instalar o servidor DHCP do Kurumin na opção a seguir, mas por enquanto esta opção só funciona com o Kurumin instalado no HD.\n
+Se você preferir configurar os clientes com endereço IP fixo, a configuração *nos clientes* fica: \n
+-Endereço IP: Qualquer endereço dentro da faixa de endereços usada pelo Kurumin. Ex: 192.168.0.3 \n
+-Servidor DNS: Os endereços dos servidores DNS do seu provedor. Ex: 200.177.250.10 \n
+-Gateway Padrão: O endereço do servidor Kurumin. Ex: 192.168.0.1 \n
+-Domínio: O domínio do seu provedor. Ex: terra.com.br\n\n
+Ao rodar este script com o Kurumin instalado no HD a configuração torna-se definitiva."
+$DIA --backtitle "$BT" --title "$T1" --msgbox "$M1" 30 75
+
+
+/usr/local/bin/instalar-dhcp
+
+kdialog --msgbox "O compartilhamento da conexão foi ativado e configurado para ser reestabelescido a cada boot. Configure os clientes da rede conforme as instruções anteriores e faça o teste :-)"
+
+
+if [ -z "$regras" ]; then 
+
+  BT="Ativar o Firewall"
+  T1="Ativar o Firewall"
+  M1="Ao acessar a Internet e compartilhar a conexão, principalmente se você acessa via ADSL ou outro tipo 
+de acesso via banda larga, é recomendável manter um Firewall ativo. O Kurumin inclui um firewall fácil 
+de configurar, você gostaria de ativá-lo?\n
+Você poderá desativá-lo a qualquer momento através do ícone no Iniciar > Internet > Compartilhar Conexão 
+e Firewall.\n" 
+  $DIA --backtitle "$BT" --title "$T1" --yesno "$M1" 16 70
+  x=$?
+  if [ $x = 0 ] ; then
+  xterm -T Root -bg black -fg green -cr red -ls -e sudo -s /usr/local/bin/firewall-ativar
+
+ fi
+
+fi
+
+

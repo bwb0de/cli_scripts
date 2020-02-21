@@ -1,0 +1,19 @@
+$HI - História de contextualização (relativo ao tema)[op]
+Eventos - O que aconteceu? [categoria de tipos]
+$CPCT - Compra, calculo de troco.
+$CPQU1 - Compra, quantitade de produto comprado.
+  --qtd de um produto.
+  --qtd de dois produtos.
+$CPVP - Valor do produto comprado.
+  --valor total pago pela compra
+  --valor da unidade de um produto.
+  --valor da unidade de dois produtos.
+$CPCP - Valor necessário para completar a compra.
+  --dinheiro versus cartão;
+  --emprestado.
+  --se dobro, triplo, quadruplo... da compra...
+  --se dobro, triplo, quadruplo... de um produto...
+  --se dobro, triplo, quadruplo... de dois produtos...
+$CN - Relativo à ciencias naturais.
+  --reprodução/crescimento de populações.
+  

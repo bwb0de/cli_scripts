@@ -1,0 +1,54 @@
+/* Para fazer que uma pagina HTML leia o conteúdo de uma planilha CSS, vc deve inserir a TAG <link>
+   no cabeçalho da página...
+
+   <head>
+     <link rel="stylesheet" type="text/css" href="mystyle.css" />
+   </head> */
+
+/* Parentezis!!!
+   Códigos HTML para caracteres especiais (á, ú, ç...) devem sempre iniciar com '&' e terminar com ';'.
+	
+	&aacute; 	á
+	&Aacute;	Á (veja diverença pro maiúsculo...)
+	&acirc; 	â
+	&Acirc; 	Â (...o primeiro caractere depois do '&' vai em maiúsculo)
+	&agrave; 	à
+	&atilde; 	ã
+	&ccedil; 	ç
+	&eacute; 	é
+	&ecirc; 	ê
+	&iacute; 	í
+	&oacute; 	ó
+	&ocirc; 	ô
+	&otilde; 	õ
+	&uacute; 	ú
+	&uuml; 		ü
+	&copy;		©
+	&reg;		®
+	&sect;		§
+	&#191;		¿ (seqüências com códigos ASCII também são válidas)
+	&lt;		<
+	&gt; 		>
+	&amp; 		&
+	
+body
+{ 
+	background-image:url('bgdesert.jpg');
+	background-repeat:repeat-x;
+	   
+	   /*pode ser apenas 'repeat' ou mesmo 'repeat-y', causa efeitos diferentes. Todo conjunto 'key:valor'
+	     deve terminar com um ';'. */
+}
+h1,h2,h3,p,...,papagaio,borboleta
+   
+   /*você pode definir qualquer nome e atrelar um estilo à ele para usálo posteriormente, você preciza
+     inserir a tag com o referido nome no código HTML de destino. ex: <papagaio></papagaio>.
+
+     os nomes 'h1', 'h2', 'h3', 'p' são nomes padrões utilizados em código HTML. */
+{
+	background-color: transparent;
+	color: black;
+	text-align: center;
+	font-family: arial;
+	font-size: 46px;
+	margin-left: 20px;

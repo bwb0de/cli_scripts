@@ -1,0 +1,45 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+"""
+Created on Mon May 11 22:32:45 2015
+
+@author: bwb0de
+"""
+
+from os import walk, path, system
+from time import sleep
+import random
+
+sleep(10)
+
+wpfolder = "/home/bwb0de/.Wallpapersz/"
+
+def GetWpList():
+	wpl = []
+	for root, dirs, files in walk(wpfolder):
+		for f in files:
+			if f.find(".JPG") != -1:
+				wpl.append(path.join(root, f))
+	return wpl
+
+wpl = GetWpList()
+
+while True:
+    if wpl == []:
+		wpl = GetWpList()
+    else:
+		lmaxidx = len(wpl)
+		pkidx = random.choice(range(0,lmaxidx))
+		pkidx2 = random.choice(range(0,lmaxidx))
+		
+		system("ln -f -s %s /home/bwb0de/.WALLPAPER.JPG" % wpl[pkidx])
+		system("ln -f -s %s /home/bwb0de/.LOOKSCREEN.JPG" % wpl[pkidx2])
+
+		wpl.pop(pkidx)
+		try: 
+			wpl.pop(pkidx2)
+		except: pass
+		sleep(60*15)
+
+

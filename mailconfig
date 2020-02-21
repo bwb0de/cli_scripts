@@ -1,0 +1,5 @@
+perl -MURI::Escape -e '$to = shift;$to =~ s/^mailto://i;exec("firefox", "
+https://mail.google.com/mail/?view=cm&fs=1&tf=1&cmid=22&to=".URI::Escape::uri_escape($to)
+);' '%s'
+
+

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+xterm -ls -bg black -fg white -fa 'Iconsolata' -fs 9 -cr white -hc white -rightbar -ah&

@@ -1,0 +1,13 @@
+Inserir no arquivo /etc/apache2/httpd.conf
+
+LoadModule python_module modules/mod_python.so
+
+<Directory /var/www/>
+  Options Indexes FollowSymLinks MultiViews
+  AllowOverride None
+  Order allow,deny
+  allow from all
+  AddHandler mod_python .py
+  PythonHandler mod_python.publisher
+  PythonDebug On
+</Directory>

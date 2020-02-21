@@ -2,3 +2,6 @@
 __pycache__
 *.ogg
 *.wma
+*.csv
+*.sql
+*.txt

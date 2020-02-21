@@ -1,0 +1,13 @@
+OpenOffice muito lento no Ubuntu 10.04
+Se o seu  OpenOffice 3.2 está levando quase 1 minuto para abrir um documento, mesmo após os ajustes de configuração da memória e desativação do Java, o problema pode estar na resolução de nomes.
+
+Para corrigi-lo, siga os seguintes passos:
+
+    abra o arquivo /etc/hosts
+    após a linha "127.0.1.1 [nome_do_computador] ", acrescente 127.0.0.1 [nome_do_computador]  localhost  [nome_do_computador].(none).
+
+Se o nome do seu computador for desktop1, o arquivo deve ficar mais ou menos assim:
+
+127.0.0.1   localhost
+127.0.1.1   desktop1
+127.0.0.1   desktop1  localhost  desktop1.(none)

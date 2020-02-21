@@ -1,0 +1,29 @@
+#!/bin/bash
+#
+#
+
+for FILE in *.png
+	do
+	convert $FILE -crop 224x310+$1+$2 CardDAN-$FILE
+	rm $FILE
+	done
+
+x=x
+
+for FILE in *.JPG
+	do
+	a=`ls $FILE | wc -c`
+	b=`expr $a + 6`
+	c=`expr $b + 3`
+	d=`expr $b + 5`
+	e=`expr $b + 8`
+	w=`identify $FILE | cut -c$b-$c`
+	h=`identify $FILE | cut -c$d-$e`
+	if test $w -lt $h
+		then
+		f=`expr $w \* $w`
+		g=`expr $f / $h`
+		convert $FILE -crop $w$x$g+0+0 croped-$FILE
+		fi
+	done
+

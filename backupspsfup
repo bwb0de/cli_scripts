@@ -1,0 +1,5 @@
+#!/bin/bash
+
+NOME=`date +%Y-%m-%d_%Hh%Mm%Ss`
+tar -cf "spsfuodb_$NOME.tar" /home/bwb0de/DevelBackup/spsfup-dev
+bzip2 "spsfuodb_$NOME.tar"

@@ -1,0 +1,29 @@
+Compiz Window Rules
+
+1: class=Gnome-terminal
+
+2: 
+
+3: class=Totem | class=Tomboy | class=Gcalctool | class=Gnome-font-viewer | role=gimp-toolbox
+
+4: class=Gnome-terminal
+
+5: class=Gnome-terminal
+
+6:
+
+7: name=ccsm | class=Gnome-terminal | class=PdfMod | class=Gnome-font-viewer | role=gimp-image-window | class=Update-manager
+
+8: 
+
+9: class=Gnome-terminal | role=gimp-toolbox
+
+10: class=Gnome-terminal | class=Totem | role=gimp-toolbox 
+
+11: class=Gnome-terminal
+
+12: type=Dialog
+
+13: class=Gnome-terminal
+
+14:

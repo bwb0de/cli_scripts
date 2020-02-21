@@ -1,0 +1,239 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+#
+#  Copyright 2017 Daniel Cruz <bwb0de@bwb0dePC>
+#  Version 0.1
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+#  MA 02110-1301, USA.
+#
+#
+
+import argparse
+from os import system as sh
+from os import linesep as nl
+from os import listdir as ls
+from subprocess import check_output as sh2
+
+script_nfo="""
+Script de backup que usa o rsync para automatizar processo de cópia de segurança e restauração de arquivos.
+
+Ao chamar o script é necessário definir uma  ação a ser executada, as opções são:
+  » 'config', para modificar parêmetros de configuração;
+  » 'purge', para apagar todas as configurações definidas;
+  » 'view', para mostar o conteúdo dos arquivos de configuração;
+  » 'first' realiza o espelhamento dos diretórios fontes no destino. Apaga quaisquer arquivos que inexistam nas fontes;
+  » 'incremental' realiza a atualização dos arquivos do destino incluindo arquivos novos e copiando os modificados nas fontes;
+  » 'restore', para restaurar arquivos da última cópia de segurança;
+  » 'sync', para atualizar modificações nos dois sentidos..."""
+
+parser = argparse.ArgumentParser(description=script_nfo)
+parser.add_argument("action", help="utilize uma: config|purge|view|first|incremental|restore|sync")
+parser.add_argument("-i", help="inclui um diretório na lista de backup")
+parser.add_argument("-t", help="define o diretório de destino para backup")
+parser.add_argument("-p", help="indica o nome do perfil a ser criado/usado")
+args = parser.parse_args()
+
+
+def check_profile_op(profile):
+	if profile == 'all':
+		full_path_2_conf_dir = sh2('cd ~/.mkbk/; pwd', shell=True)
+		full_path_2_conf_dir = full_path_2_conf_dir.decode("utf-8").replace(nl,'')
+		profiles = ls(full_path_2_conf_dir)
+	elif profile != 'default':
+		profiles = [profile]
+	else:
+		profiles = ['default']
+	return profiles
+
+
+
+def create_config_files(profile='default'):
+	sh("mkdir -p ~/.mkbk/{profile}; touch ~/.mkbk/{profile}/backup_folders ~/.mkbk/{profile}/target_folder".format(profile=profile))
+
+
+
+def purge_config_files(profile='all'):
+	if profile == 'all':
+		op = input('Tem certeza que deseja apagar todos os perfis? (s/n): ')
+		if op == ('s' or 'S'):
+			sh("rm -fR ~/.mkbk")
+			print('Todos os perfis foram excluídos...')
+	else:
+		sh("rm -fR ~/.mkbk/{profile}".format(profile=profile))
+	create_config_files()
+
+
+
+def insert_into_sources(insert_folder, profile):
+	create_config_files(profile)
+	sh("echo '{insert_folder}' >> ~/.mkbk/{profile}/backup_folders".format(insert_folder=insert_folder, profile=profile))
+
+
+
+def set_target_folder(insert_folder, profile):
+	create_config_files(profile)
+	sh("echo '{insert_folder}' > ~/.mkbk/{profile}/target_folder".format(insert_folder=insert_folder, profile=profile))
+
+
+
+def get_config_info(profile):
+	bk_f = sh2("cat < ~/.mkbk/{}/backup_folders".format(profile), shell=True)
+	bk_f = bk_f.decode("utf-8").split(nl)[:-1]
+	tg_f = sh2("cat < ~/.mkbk/{}/target_folder".format(profile), shell=True)
+	tg_f = tg_f.decode("utf-8").replace(nl,'')
+	return (bk_f, tg_f)
+
+
+
+def get_all_profiles():
+	full_path_2_conf_dir = sh2('cd ~/.mkbk/; pwd', shell=True)
+	full_path_2_conf_dir = full_path_2_conf_dir.decode("utf-8").replace(nl,'')
+	profiles = ls(full_path_2_conf_dir)
+	for profile in profiles:
+		nfo = get_config_info(profile)
+		show_profile_info(profile, nfo)
+
+
+
+def show_profile_info(profile, nfo):
+	bk_f, tg_f = nfo[0], nfo[1]
+	print('** Configurações do perfil {} **'.format(profile))
+	print('Diretórios fontes listados:')
+	bk_f = sh2("cat < ~/.mkbk/{}/backup_folders".format(profile), shell=True)
+	print(bk_f.decode("utf-8").split(nl)[:-1])
+	print('')
+	print('Diretório de destino:')
+	tg_f = sh2("cat < ~/.mkbk/{}/target_folder".format(profile), shell=True)
+	print(tg_f.decode("utf-8").replace(nl,''))
+	print('')
+
+
+
+def main():
+	create_config_files()
+	if args.action == 'config':
+		if args.p:
+			profile = args.p
+		else:
+			profile = 'default'
+
+		if args.i:
+			new_folder = args.i
+			insert_into_sources(new_folder, profile)
+
+		if args.t:
+			new_folder = args.t
+			set_target_folder(new_folder, profile)
+		return 0
+
+
+	elif args.action == 'view':
+		if args.p:
+			profile = args.p
+			nfo = get_config_info(profile)
+			show_profile_info(profile, nfo)
+			return 0
+		get_all_profiles()
+		return 0
+
+	elif args.action == 'purge':
+		if args.p:
+			profile = args.p
+			purge_config_files(profile)
+		else:
+			purge_config_files()
+		return 0
+
+	elif args.action == 'first':
+		if args.p:
+			profile = args.p
+			profiles = check_profile_op(profile)
+		else:
+			profiles = ['default']
+
+		for profile in profiles:
+			nfo = get_config_info(profile)
+			bk_f, tg_f = nfo[0], nfo[1]
+			print('Você selecionou a opção "first"...')
+			print('Arquivos antigos do backup que inexistam na fonte serão apagados...')
+			op = input('Deseja prosseguir? (s/n): ')
+			if op == ('s' or 'S'):
+				for folder in bk_f:
+					print("Realizando backup do diretório: {}".format(folder))
+					sh('rsync -urlHpog --delete --safe-links "{}" "{}/"'.format(folder, tg_f))
+		sh('zenity --notification --window-icon="info" --text="Backup concluído!"')
+		return 0
+
+	elif args.action == 'incremental':
+		if args.p:
+			profile = args.p
+			profiles = check_profile_op(profile)
+		else:
+			profiles = ['default']
+
+		for profile in profiles:
+			nfo = get_config_info(profile)
+			bk_f, tg_f = nfo[0], nfo[1]
+			for folder in bk_f:
+				print("Realizando backup do diretório: {}".format(folder))
+				sh('rsync -urlHpog --safe-links "{}" "{}"/'.format(folder, tg_f))
+		sh('zenity --notification --window-icon="info" --text="Backup concluído!"')
+		return 0
+
+	elif args.action == 'restore':
+		if args.p:
+			profile = args.p
+			profiles = check_profile_op(profile)
+		else:
+			profiles = ['default']
+
+		for profile in profiles:
+			nfo = get_config_info(profile)
+			bk_f, tg_f = nfo[0], nfo[1]
+			for folder in bk_f:
+				tmp_source = tg_f+'/'+folder.split('/')[-1]
+				tmp_target = folder
+				print("Realizando restauração do diretório: {}".format(folder))
+				sh('rsync -urlHpog --safe-links "{}/" "{}/"'.format(tmp_source, tmp_target))
+		sh('zenity --notification --window-icon="info" --text="Restauração concluída!"')
+		return 0
+
+	elif args.action == 'sync':
+		if args.p:
+			profile = args.p
+			profiles = check_profile_op(profile)
+		else:
+			profiles = ['default']
+
+		for profile in profiles:
+			nfo = get_config_info(profile)
+			bk_f, tg_f = nfo[0], nfo[1]
+			for folder in bk_f:
+				tmp_source = tg_f+'/'+folder.split('/')[-1]
+				tmp_target = folder
+				print("Realizando sincronização do diretório: {}".format(folder))
+				sh('rsync -urlHpog --safe-links "{}/" "{}/"'.format(tmp_source, tmp_target))
+				sh('rsync -urlHpog --safe-links "{}" "{}/"'.format(folder, tg_f))
+		sh('zenity --notification --window-icon="info" --text="Sincronização concluída!"')
+		return 0
+
+	else:
+		print("Ação desconhecida... Digite a opção '-h' para obter ajuda.")
+		return 1
+
+if __name__ == '__main__':
+	main()
